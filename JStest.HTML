@@ -44,12 +44,12 @@
   		top: 54px;
   		display: none;
   	}
-  	.up {
+  	.down {
   		position: absolute;
   		left: 100px;
   		top: 54px;
   	}
-  	.down {
+  	.up {
   		position: absolute;
   		left: 20px;
   		top: 54px;
@@ -77,7 +77,8 @@
   		width: 200px;
   		height: 200px;
   		border: 2px solid black;
-  		z-index: 3;
+      background: url(https://gss3.bdstatic.com/-Po3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=c11a8ef004f431ada8df4b6b2a5fc7ca/ac6eddc451da81cb4a76e8af5a66d0160924313b.jpg);
+      background-size: cover;
   	}
   	.musicList {
   		position: absolute;
@@ -88,7 +89,37 @@
   		border: 2px solid black;
   	}
 
-  	
+    .bar {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 300px;
+      height: 5px;
+      background-color: grey;
+    }
+  	.bar2 {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 0px;
+      height: 5px;
+      background-color: pink;
+    }
+    .allBar {
+      position: absolute;
+      left: 18px;
+      top: 101px;
+      width: 300px;
+      height: 5px;
+    }
+
+
+    .time {
+      position: absolute;
+      left: 325px;
+      top: 92px;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
@@ -99,53 +130,114 @@
 			<div class="auther">bigbang</div><!--作者-->
 			<div class="iconfont play">&#xe633;</div><!--播放按钮-->
 			<div class="iconfont pause">&#xe63b;</div><!--暂停-->
-			<div class="iconfont up">&#xe602;</div><!--上一首-->
-			<div class="iconfont down">&#xe603;</div><!--下一首-->
+			<div class="iconfont down">&#xe602;</div><!--上一首-->
+			<div class="iconfont up">&#xe603;</div><!--下一首-->
 			<div class="coverPicture"></div><!--封面-->
+      <div class="allBar">
+        <div class="bar"></div><!--进度条-->
+        <div class="bar2"></div><!--进度条2-->
+      </div>
+      <div class="time">0:00/0:00</div>
 			<div class="musicList"></div>
 		</div>
 	</div>
 
 	<script type="text/javascript">
-		var xhr = new XMLHttpRequest()
-		xhr.open('GET','http://localhost:7500/music')
-		xhr.onload = function(){
-			var music = JSON.parse(xhr.responseText)
-			console.log(music)
+    function getMusicList(callback){
+    var xhr = new XMLHttpRequest()
+      xhr.open('GET','http://localhost:7500/music')
+      xhr.onload = function(){
+        callback(JSON.parse(xhr.responseText))
+      }
+      xhr.send()
+    }
 
-			/*音乐*/
-		function $(select){
-			return document.querySelector(select)
-		}
-		function $$(select){
-			return document.querySelectorAll(select)
-		}
+    getMusicList(function(list){
+      /*音乐*/
+    function $(select){
+      return document.querySelector(select)
+    }
+    function $$(select){
+      return document.querySelectorAll(select)
+    }
 
-		var audioObject = new Audio()
-		audioObject.src = music[0].src
-		$('.title').innerText = music[0].title
-		$('.auther').innerText = music[0].auther
-		var nurl = music[0].img
-		console.log(nurl)
+    var audioObject = new Audio()
+    var musicIndex = 0
+    audioObject.autoplay = true
+
+    audioObject.src = list[musicIndex].src
+    $('.title').innerText = list[musicIndex].title
+    $('.auther').innerText = list[musicIndex].auther
+
+/*点击暂停和播放*/
+    $('.theAudio').addEventListener('click',function(e){
+      if(e.target.classList.contains('play')){
+          audioObject.play()
+          $('.play').style.display = 'none'
+          $('.pause').style.display = 'block'
+      }
+      if(e.target.classList.contains('pause')){
+        audioObject.pause()
+        $('.play').style.display = 'block'
+        $('.pause').style.display = 'none'
+      }
+    })
+
+/*点击下一首或者上一首*/
+    $('.down').addEventListener('click',function(){
+      $('.play').style.display = 'none'
+      $('.pause').style.display = 'block'
+      musicIndex = (++musicIndex)%list.length
+      audioObject.src = list[musicIndex].src
+    })
+    $('.up').addEventListener('click',function(){
+      $('.play').style.display = 'none'
+      $('.pause').style.display = 'block'
+      musicIndex = (list.length+(--musicIndex))%list.length
+      audioObject.src = list[musicIndex].src
+    })
+
+/*进度条和时间的显示*/
+    audioObject.ontimeupdate = function(){
+      $('.bar2').style.width = (this.currentTime/this.duration)*100+'%'
+      var min = Math.floor(this.duration/60)
+      var sec = Math.floor(this.duration%60)+''
+      if((sec+'').length==1){
+        sec = '0'+sec
+      }
+
+      var inFrontMin = Math.floor(this.currentTime/60)
+      var inFrontSec = Math.floor(this.currentTime%60)+''
+      if((inFrontSec+'').length==1){
+        inFrontSec = '0'+inFrontSec
+      }
+      $('.time').innerText = inFrontMin+':'+inFrontSec+'/'+min+':'+sec
+    }
+
+/*拖动进度条*/
+  $('.allBar').onclick = function(e){
+    var percent = (e.offsetX/parseInt(getComputedStyle(this).width))
+    audioObject.currentTime = audioObject.duration * percent
+  }
+    
+/*播放结束时自动播放下一首*/
+  audioObject.onended = function(){
+      $('.play').style.display = 'none'
+      $('.pause').style.display = 'block'
+      musicIndex = (++musicIndex)%list.length
+      audioObject.src = list[musicIndex].src
+  }
 
 
-		$('.theAudio').addEventListener('click',function(e){
-			if(e.target.classList.contains('play')){
-				audioObject.play()
-				$('.play').style.display = 'none'
-				$('.pause').style.display = 'block'
-			}
-			if(e.target.classList.contains('pause')){
-				audioObject.pause()
-				$('.play').style.display = 'block'
-				$('.pause').style.display = 'none'
-			}
-			
-		})
+    })
 
-		}
 
-		xhr.send()
+
+
+
+
+
+
 
 
 
