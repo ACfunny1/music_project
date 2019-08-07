@@ -70,21 +70,11 @@
   		color: black;
   	}
 
-  	.coverPicture {
-  		position: absolute;
-  		left: -2px;
-  		top: 120px;
-  		width: 200px;
-  		height: 200px;
-  		border: 2px solid black;
-      background: url(https://gss3.bdstatic.com/-Po3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=c11a8ef004f431ada8df4b6b2a5fc7ca/ac6eddc451da81cb4a76e8af5a66d0160924313b.jpg);
-      background-size: cover;
-  	}
   	.musicList {
   		position: absolute;
-  		right: -2px;
+      left: -2.5px; 
   		top: 120px;
-  		width: 200px;
+  		width: 400px;
   		height: 200px;
   		border: 2px solid black;
   	}
@@ -120,6 +110,10 @@
       top: 92px;
       display: inline-block;
     }
+
+    p {
+      margin: 5px 10px;
+    }
   </style>
 </head>
 <body>
@@ -132,7 +126,6 @@
 			<div class="iconfont pause">&#xe63b;</div><!--暂停-->
 			<div class="iconfont down">&#xe602;</div><!--上一首-->
 			<div class="iconfont up">&#xe603;</div><!--下一首-->
-			<div class="coverPicture"></div><!--封面-->
       <div class="allBar">
         <div class="bar"></div><!--进度条-->
         <div class="bar2"></div><!--进度条2-->
@@ -152,6 +145,8 @@
       xhr.send()
     }
 
+
+
     getMusicList(function(list){
       /*音乐*/
     function $(select){
@@ -161,6 +156,14 @@
       return document.querySelectorAll(select)
     }
 
+    function jiance(){
+      $('.play').style.display = 'none'
+      $('.pause').style.display = 'block'
+      audioObject.src = list[musicIndex].src
+      $('.title').innerText = list[musicIndex].title
+      $('.auther').innerText = list[musicIndex].auther
+    }
+
     var audioObject = new Audio()
     var musicIndex = 0
     audioObject.autoplay = true
@@ -168,6 +171,7 @@
     audioObject.src = list[musicIndex].src
     $('.title').innerText = list[musicIndex].title
     $('.auther').innerText = list[musicIndex].auther
+
 
 /*点击暂停和播放*/
     $('.theAudio').addEventListener('click',function(e){
@@ -185,16 +189,12 @@
 
 /*点击下一首或者上一首*/
     $('.down').addEventListener('click',function(){
-      $('.play').style.display = 'none'
-      $('.pause').style.display = 'block'
       musicIndex = (++musicIndex)%list.length
-      audioObject.src = list[musicIndex].src
+      jiance()
     })
     $('.up').addEventListener('click',function(){
-      $('.play').style.display = 'none'
-      $('.pause').style.display = 'block'
       musicIndex = (list.length+(--musicIndex))%list.length
-      audioObject.src = list[musicIndex].src
+      jiance()
     })
 
 /*进度条和时间的显示*/
@@ -229,6 +229,27 @@
   }
 
 
+/*创建歌曲列表*/
+  for (var i = 0; i < list.length; i++) {
+      $('.musicList').appendChild(document.createElement('p')).innerText = list[i].title+'-'+list[i].auther
+  }
+
+/*歌曲列表点击事件*/
+
+  $('.musicList').addEventListener('click',function(e){
+    for (var i = 0; i < list.length; i++) {
+      if(e.target.innerText==(list[i].title+'-'+list[i].auther)){
+        musicIndex = i
+        jiance()
+      }
+    }
+  })
+
+
+
+
+  console.log(list.length)
+  console.log($$('p')[0])
     })
 
 
